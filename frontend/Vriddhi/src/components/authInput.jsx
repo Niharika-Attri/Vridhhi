@@ -7,11 +7,14 @@ function AuthInput(props){
                     {props.label}
             </label>
             <input
+                value={props.value}
                 type={props.type}
                 id={props.id}
                 placeholder={props.placeholder}
-                className=" border-1 text-black border-green-900 rounded-lg p-2"
+                className={`text-black rounded-lg p-2 ${props.error === "" ? "border border-green-900" : "border-2 border-red-600"}`}
+                onChange={props.onChange}
             />
+            { props.error !== '' && <p className="mt-1 text-red-600 text-xs">{props.error}</p>}
         </div>
     )
 }

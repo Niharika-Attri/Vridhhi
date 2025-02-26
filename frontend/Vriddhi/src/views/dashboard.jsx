@@ -1,12 +1,15 @@
+import icon from '../assets/logoIcon.png'
+import PlantCard from '../components/plantCard'
+
 function Dashboard() {
     return(
-        <div className="relative w-full h-full flex justify-center items-center text-emerald-950 bg-green-100">
-            <div className="absolute top-0 w-full h-14 bg-emerald-950"></div>
-            
-            <p className="absolute top-[50%] left-[45%] text-emerald-950 text-lg">work in progress</p>
-            
+        <div className="flex-col w-full h-full bg-black/10">
+            <div className='flex w-full ml-10 items-center'>
+                <img className='w-20' src={icon}/>
+                <h2 className='text-black text-3xl'>Vridhhi</h2>
+            </div>
+            <PlantCard/>
         </div>
-        
     )
 }
 
