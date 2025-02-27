@@ -1,6 +1,8 @@
 function Tile(props){
+    const bgColor = props.colour ? `bg-${props.colour}` : "bg-emerald-500";
+
     return(
-        <div className={`text-xs px-2 ${ props.colour == null ? "bg-emerald-500": "bg-{props.colour}" } rounded-full`}>
+        <div className={`text-xs px-2 rounded-full ${bgColor}`}>
             <h4> {props.title}</h4>
         </div>
     )
