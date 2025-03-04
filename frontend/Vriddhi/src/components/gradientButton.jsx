@@ -3,7 +3,7 @@ function GradientButton(props){
         <button
             onClick={props.handleClick}
             type={props.type}
-            className="w-full mb-1 bg-gradient-to-r from-emerald-950 to-green-700 mt-4"
+            className="w-full mb-1 h-10 rounded-full bg-gradient-to-r from-emerald-950 to-green-700 mt-4"
         >
             {props.title}
         </button>

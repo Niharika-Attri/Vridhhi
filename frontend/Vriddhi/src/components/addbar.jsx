@@ -5,7 +5,7 @@ import  axios  from "axios";
 import Notification from "./notification";
 import "react-toastify/dist/ReactToastify.css"; 
 
-function AddBar(){    
+function AddBar({ refreshDashboard }){    
     const[isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
     const [errorMessage, setErrorMessage] = useState('')
@@ -20,34 +20,65 @@ function AddBar(){
         initial_height: ''
     });    
 
-      const handleChange = (e) => {
+        const handleChange = (e) => {
         const { name, value } = e.target;
 
         if(name == 'category'){
             setFormData(prevData => ({
                 ...prevData,
                 category : value
-              }));
+                }));
         }
-        else{
+        else if (name === 'present_height' || name === 'initial_height') {
+            const intValue = value ? parseInt(value, 10) : '';
+
+        setFormData(prevData => {
+            // Validation: Ensure initial_height is never greater than present_height
+            if (name === 'initial_height' && intValue > prevData.present_height) {
+                setErrorMessage("Initial height cannot be greater than present height.");
+                return prevData; // Do not update state
+            } else {
+                setErrorMessage(""); 
+            }
+
+            return {
+                ...prevData,
+                [name]: intValue
+            };
+        });
+        }
+        else if (name === 'date_planted') {
+            // Ensure date is stored as a string
+            setFormData(prevData => ({
+                ...prevData,
+                [name]: String(value)
+            }));
+        } else{
             setFormData(prevData => ({
                 ...prevData,
                 [name]: value
-              }));
+                }));
         }
         
-      };
+        };
 
-      const handleSelectChange = (selectedOptions) => {
-        const categoryValues = selectedOptions.map(option => option.value);
-      
-        setFormData(prevData => ({
-          ...prevData,
-          category: categoryValues
-        }));
-      };
+        const handleSelectChange = (selectedOptions) => {
+            const categoryValues = selectedOptions.map(option => option.value);
+        
+            setFormData(prevData => ({
+            ...prevData,
+            category: categoryValues
+            }));
+        };
 
-      const handleSubmit = async (e) => {
+        const handleNameChange = (selectedOption) => {
+            setFormData(prevData => ({
+                ...prevData,
+                name: selectedOption ? selectedOption.value : ''
+            }));
+        }
+
+        const handleSubmit = async (e) => {
         e.preventDefault();
 
         const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
@@ -63,35 +94,36 @@ function AddBar(){
         console.log(jsonData);
         
         try{
-            const response = await axios.post('http://localhost:8000/book/add', formData);
+            const response = await axios.post('http://localhost:8000/plant/add', formData);
             console.log('response: ', response);
             setSuccessMessage(response.data['message'])
-            console.log('response data', successResponse);
 
             if (response.data['statuscode'] === 200) {
                 setSuccessMessage(response.data['message'])
-                console.log("Book added successfully:", successMessage)
+                console.log("Plant data added successfully:", successMessage)
                 
                 // Reset the form after successful submission
                 setFormData({
                     name: '',
                     description: '',
                     category: [],
-                    total_copies: '',
-                    available_copies: ''
+                    date_planted: '',
+                    present_height: '',
+                    initial_height: ''
                 });
-                alert("Book added successfully!");
+                refreshDashboard();
+                alert("Plant added successfully!");
             }else{
                 setErrorResponse(response.data['message'])
                 alert("An error occured: "+ errorResponse)
                 console.log('an error occured ', errorResponse);
             }
         }catch (error) {
-            console.error("Error adding book:", error);
-            alert("Failed to add book!");
+            console.error("Error adding the plant:", error);
+            alert("Failed to add the plant!");
         }
 
-      };
+    };
 
     const category = [
         { value: "flower", label: "Flower" },
@@ -99,17 +131,28 @@ function AddBar(){
         { value: "fruit", label: "Fruit" },
         { value: "houseplant", label: "House Plant" },
         
-      ];
+    ];
+
+    const names = [
+        { value: "aloe vera", label: "Aloe Vera" },
+        { value: "sunflower", label: "Sunflower" },
+        { value: "hibiscus", label: "Hibiscus" },
+        { value: "rose", label: "Rose" },
+        { value: "tulsi", label: "Tulsi" },
+        { value: "methi", label: "Methi" },
+        
+    ];
 
     const toggleDropdown = () => {
         setIsOpen(!isOpen)
     }
 
+
     useEffect(() => {
         const handleClickOutside = (Event) =>{
             if (dropdownRef.current && !dropdownRef.current.contains(Event.target)) {
                 setIsOpen(false);
-              }
+            }
         }
 
         document.addEventListener("mousedown", handleClickOutside);
@@ -130,16 +173,25 @@ function AddBar(){
                 <div className="absolute top-12 left-0 w-full bg-white shadow-md rounded-md p-4 z-10">
                 <form id="submitForm" onSubmit={handleSubmit}>
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="mb-2">
+
+                        <div className="mb-2 text-black">
                             <label className="block text-gray-700 mb-1">Name:</label>
-                            <input
+                            <Select
                                 required
-                                type="text"
+                                id="name"
                                 name="name"
-                                placeholder="Enter plant name."
-                                value={formData.name}
-                                onChange={handleChange}
-                                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                options={names}
+                                className="basic-select "
+                                classNamePrefix="select"
+                                styles={{
+                                    valueContainer: (provided) => ({
+                                        ...provided,
+                                        maxHeight: '38px',   
+                                        overflowY: 'auto',   
+                                        }),
+                                }}
+                                value={names.find(option => option.value === formData.name) || null}
+                                onChange={handleNameChange}
                             />
                         </div>
                         
@@ -151,14 +203,14 @@ function AddBar(){
                                 name="category"
                                 options={category}
                                 isMulti
-                                className="basic-select overflow- "
+                                className="basic-select  "
                                 classNamePrefix="select"
                                 styles={{
                                     valueContainer: (provided) => ({
                                         ...provided,
                                         maxHeight: '38px',   
                                         overflowY: 'auto',   
-                                      }),
+                                        }),
                                 }}
                                 value={category.filter(option => formData.category.includes(option.value))}
                                 onChange={handleSelectChange}
